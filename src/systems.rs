@@ -44,14 +44,37 @@ pub fn player_input_system(
 ) {
     for (mut velocity, grounded, mut jump_state) in player_query.iter_mut() {
         if grounded.is_grounded {
-            // Ground movement - immediate response
-            velocity.x = 0.0;
+            // Ground movement - with active deceleration
+            let mut ground_input = 0.0;
             if keyboard_input.pressed(KeyCode::ArrowLeft) {
-                velocity.x = -PLAYER_SPEED;
+                ground_input = -1.0;
             }
             if keyboard_input.pressed(KeyCode::ArrowRight) {
-                velocity.x = PLAYER_SPEED;
+                ground_input = 1.0;
             }
+            
+            // If no input is pressed, apply deceleration force opposite to current movement
+            if ground_input == 0.0 && velocity.x.abs() > 0.1 {
+                // Apply deceleration force in opposite direction of movement
+                ground_input = if velocity.x > 0.0 { -1.0 } else { 1.0 };
+            }
+            
+            // Apply ground acceleration/deceleration
+            velocity.x += ground_input * GROUND_ACCELERATION * time.delta_secs();
+            
+            // Stop completely if we've changed direction (prevents oscillation)
+            if grounded.is_grounded && keyboard_input.pressed(KeyCode::ArrowLeft) == false && keyboard_input.pressed(KeyCode::ArrowRight) == false {
+                // We're decelerating - check if we've crossed zero
+                if (velocity.x > 0.0 && ground_input < 0.0) || (velocity.x < 0.0 && ground_input > 0.0) {
+                    // We've crossed zero or very close to it, stop completely
+                    if velocity.x.abs() < GROUND_ACCELERATION * time.delta_secs() {
+                        velocity.x = 0.0;
+                    }
+                }
+            }
+            
+            // Clamp ground speed to max speed
+            velocity.x = velocity.x.clamp(-PLAYER_SPEED, PLAYER_SPEED);
         } else {
             // Air movement - with inertia
             // Apply air resistance (gradual slowdown)

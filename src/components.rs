@@ -70,6 +70,7 @@ pub const JUMP_FORCE: f32 = 200.0;
 /// Physics constants
 pub const AIR_RESISTANCE: f32 = 0.98; // Inertia factor when flying (0.98 = 2% speed loss per frame)
 pub const AIR_ACCELERATION: f32 = 400.0; // How fast player accelerates in air
+pub const GROUND_ACCELERATION: f32 = 600.0; // How fast player accelerates on ground
 
 /// Size constants
 pub const PLAYER_WIDTH: f32 = 16.0;
