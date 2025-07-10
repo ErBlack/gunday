@@ -14,7 +14,7 @@ pub fn run_app() {
     main();
 }
 
-fn main() {
+pub fn main() {
     let mut app = App::new();
     
     #[cfg(target_arch = "wasm32")]

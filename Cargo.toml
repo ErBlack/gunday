@@ -3,8 +3,32 @@ name = "gunday"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
-bevy = "0.16.1"
+bevy = { version = "0.16.1", default-features = false, features = [
+    "bevy_winit",
+    "bevy_render",
+    "bevy_core_pipeline",
+    "bevy_sprite",
+    "bevy_ui",
+    "bevy_text",
+    "bevy_asset",
+    "bevy_scene",
+    "bevy_gltf",
+    "bevy_audio",
+    "bevy_gilrs",
+    "x11",
+    "png",
+    "hdr",
+    "vorbis",
+    "webgl2",
+] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+web-sys = "0.3"
 
 [profile.dev]
 opt-level = 1
