@@ -41,6 +41,52 @@ pub struct Projectile {
     pub speed: f32,
 }
 
+/// Component for layer geometry objects
+#[derive(Component)]
+pub struct LayerGeometry {
+    pub vertices: Vec<Vec2>,
+}
+
+impl LayerGeometry {
+    pub fn new_rectangle(x: f32, y: f32, width: f32, height: f32) -> Self {
+        Self {
+            vertices: vec![
+                Vec2::new(x, y),
+                Vec2::new(x + width, y),
+                Vec2::new(x + width, y + height),
+                Vec2::new(x, y + height),
+            ]
+        }
+    }
+    
+    pub fn from_coords(coords: Vec<(f32, f32)>) -> Self {
+        Self {
+            vertices: coords.into_iter().map(|(x, y)| Vec2::new(x, y)).collect()
+        }
+    }
+}
+
+/// Resource for storing all layer geometry data
+#[derive(Resource)]
+pub struct LayerGeometryStorage {
+    pub objects: Vec<LayerGeometry>,
+}
+
+impl Default for LayerGeometryStorage {
+    fn default() -> Self {
+        Self {
+            objects: vec![
+                // Add the requested rectangle: 0,0; 1280,0; 1280,60; 0,60
+                LayerGeometry::from_coords(vec![
+                    (0.0, 0.0),
+                    (1280.0, 0.0),
+                    (1280.0, 60.0),
+                    (0.0, 60.0),
+                ])
+            ]
+        }
+    }
+}
 
 /// Size constants
 pub const GROUND_HEIGHT: f32 = 60.0;

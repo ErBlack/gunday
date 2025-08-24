@@ -87,3 +87,41 @@ pub fn projectile_system(
         }
     }
 }
+
+/// Setup layer geometry objects
+pub fn setup_layer_geometry(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    geometry_storage: Res<LayerGeometryStorage>,
+) {
+    // Create gray material for geometry objects
+    let gray_material = materials.add(ColorMaterial::from_color(Color::srgb(0.5, 0.5, 0.5)));
+    
+    for geometry in &geometry_storage.objects {
+        if geometry.vertices.len() >= 3 {
+            // Calculate center and size for rectangular objects
+            let min_x = geometry.vertices.iter().map(|v| v.x).fold(f32::INFINITY, f32::min);
+            let max_x = geometry.vertices.iter().map(|v| v.x).fold(f32::NEG_INFINITY, f32::max);
+            let min_y = geometry.vertices.iter().map(|v| v.y).fold(f32::INFINITY, f32::min);
+            let max_y = geometry.vertices.iter().map(|v| v.y).fold(f32::NEG_INFINITY, f32::max);
+            
+            let center_x = (min_x + max_x) / 2.0;
+            let center_y = (min_y + max_y) / 2.0;
+            let width = max_x - min_x;
+            let height = max_y - min_y;
+            
+            // Convert world coordinates to Bevy coordinates (Y-axis flipped)
+            let bevy_center_y = -center_y;
+            
+            commands.spawn((
+                Mesh2d(meshes.add(Rectangle::new(width, height))),
+                MeshMaterial2d(gray_material.clone()),
+                Transform::from_translation(Vec3::new(center_x, bevy_center_y, 1.0)), // Above background but below player
+                LayerGeometry::from_coords(
+                    geometry.vertices.iter().map(|v| (v.x, v.y)).collect()
+                ),
+            ));
+        }
+    }
+}
