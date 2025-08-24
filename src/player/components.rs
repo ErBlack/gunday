@@ -86,25 +86,11 @@ impl Default for ShootingState {
     fn default() -> Self {
         Self {
             last_shot_timer: 0.0,
-            shot_cooldown: 0.3, // 300ms between shots
+            shot_cooldown: 0.1,
         }
     }
 }
 
-/// Movement speed constants
-pub const PLAYER_SPEED: f32 = 200.0;
-pub const JUMP_FORCE: f32 = 200.0;
-
-/// Physics constants
-pub const AIR_RESISTANCE: f32 = 0.98; // Inertia factor when flying (0.98 = 2% speed loss per frame)
-pub const AIR_ACCELERATION: f32 = 400.0; // How fast player accelerates in air
-pub const GROUND_ACCELERATION: f32 = 600.0; // How fast player accelerates on ground
-
 /// Size constants
 pub const PLAYER_WIDTH: f32 = 28.0;
 pub const PLAYER_HEIGHT: f32 = 68.0;
-
-/// Projectile constants
-pub const PROJECTILE_SIZE: f32 = 8.0;
-pub const PROJECTILE_SPEED: f32 = 400.0;
-pub const SHOT_COOLDOWN: f32 = 0.3; // 300ms between shots

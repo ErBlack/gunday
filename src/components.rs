@@ -48,4 +48,4 @@ pub const GROUND_HEIGHT: f32 = 60.0;
 /// World and camera constants
 pub const SCREEN_WIDTH: f32 = 640.0;
 pub const SCREEN_HEIGHT: f32 = 480.0;
-pub const WORLD_WIDTH: f32 = SCREEN_WIDTH * 13.0;
+pub const WORLD_WIDTH: f32 = 8320.0;

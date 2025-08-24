@@ -1,6 +1,15 @@
 use bevy::prelude::*;
 use super::components::*;
 
+/// Movement speed constants
+const PLAYER_SPEED: f32 = 200.0;
+const JUMP_FORCE: f32 = 200.0;
+
+/// Physics constants
+const AIR_RESISTANCE: f32 = 0.98; // Inertia factor when flying (0.98 = 2% speed loss per frame)
+const AIR_ACCELERATION: f32 = 400.0; // How fast player accelerates in air
+const GROUND_ACCELERATION: f32 = 600.0; // How fast player accelerates on ground
+
 /// Handle player input
 pub fn player_input_system(
     keyboard_input: Res<ButtonInput<KeyCode>>,

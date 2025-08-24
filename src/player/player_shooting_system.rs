@@ -2,6 +2,10 @@ use bevy::prelude::*;
 use crate::components::Projectile;
 use super::components::*;
 
+/// Projectile constants
+const PROJECTILE_SIZE: f32 = 8.0;
+const PROJECTILE_SPEED: f32 = 1200.0;
+
 /// Handle player shooting input
 pub fn player_shooting_system(
     mut commands: Commands,
