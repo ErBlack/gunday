@@ -37,7 +37,7 @@ pub struct Grounded {
 
 impl Default for Grounded {
     fn default() -> Self {
-        Self { is_grounded: false }
+        Self { is_grounded: true }
     }
 }
 
