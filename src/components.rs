@@ -1,9 +1,5 @@
 use bevy::prelude::*;
 
-/// Component for the ground
-#[derive(Component)]
-pub struct Ground;
-
 /// Component for the main camera
 #[derive(Component)]
 pub struct MainCamera;
@@ -44,24 +40,38 @@ pub struct Projectile {
 /// Component for layer geometry objects
 #[derive(Component)]
 pub struct LayerGeometry {
-    pub vertices: Vec<Vec2>,
+    pub bottom_left: Vec2,
+    pub width: f32,
+    pub height: f32,
 }
+
+/// Component to mark objects as solid/collidable
+#[derive(Component)]
+pub struct Solid;
 
 impl LayerGeometry {
     pub fn new_rectangle(x: f32, y: f32, width: f32, height: f32) -> Self {
         Self {
-            vertices: vec![
-                Vec2::new(x, y),
-                Vec2::new(x + width, y),
-                Vec2::new(x + width, y + height),
-                Vec2::new(x, y + height),
-            ]
+            bottom_left: Vec2::new(x, y),
+            width,
+            height,
         }
     }
     
     pub fn from_coords(coords: Vec<(f32, f32)>) -> Self {
+        if coords.len() < 2 {
+            panic!("Need at least 2 coordinates to create a rectangle");
+        }
+        
+        let min_x = coords.iter().map(|(x, _)| *x).fold(f32::INFINITY, f32::min);
+        let max_x = coords.iter().map(|(x, _)| *x).fold(f32::NEG_INFINITY, f32::max);
+        let min_y = coords.iter().map(|(_, y)| *y).fold(f32::INFINITY, f32::min);
+        let max_y = coords.iter().map(|(_, y)| *y).fold(f32::NEG_INFINITY, f32::max);
+        
         Self {
-            vertices: coords.into_iter().map(|(x, y)| Vec2::new(x, y)).collect()
+            bottom_left: Vec2::new(min_x, min_y),
+            width: max_x - min_x,
+            height: max_y - min_y,
         }
     }
 }
@@ -76,13 +86,8 @@ impl Default for LayerGeometryStorage {
     fn default() -> Self {
         Self {
             objects: vec![
-                // Add the requested rectangle: 0,0; 1280,0; 1280,60; 0,60
-                LayerGeometry::from_coords(vec![
-                    (0.0, 0.0),
-                    (1280.0, 0.0),
-                    (1280.0, 60.0),
-                    (0.0, 60.0),
-                ])
+                // Rectangle with bottom-left at (0,0), width 1280, height 60
+                LayerGeometry::new_rectangle(0.0, 0.0, 1280.0, 60.0),
             ]
         }
     }

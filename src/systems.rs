@@ -53,19 +53,6 @@ pub fn setup_background(
     }
 }
 
-/// Setup the ground
-pub fn setup_ground(mut commands: Commands) {
-    commands.spawn((
-        Sprite {
-            color: Color::srgb(0.5, 0.3, 0.1), // Brown ground color
-            custom_size: Some(Vec2::new(WORLD_WIDTH, GROUND_HEIGHT)), // World width, 60px height
-            ..default()
-        },
-        Transform::from_translation(Vec3::new(WORLD_WIDTH / 2.0, -210.0, 0.0)), // Bottom of screen, centered in world
-        Ground,
-    ));
-}
-
 /// Move projectiles and handle cleanup
 pub fn projectile_system(
     mut commands: Commands,
@@ -99,29 +86,24 @@ pub fn setup_layer_geometry(
     let gray_material = materials.add(ColorMaterial::from_color(Color::srgb(0.5, 0.5, 0.5)));
     
     for geometry in &geometry_storage.objects {
-        if geometry.vertices.len() >= 3 {
-            // Calculate center and size for rectangular objects
-            let min_x = geometry.vertices.iter().map(|v| v.x).fold(f32::INFINITY, f32::min);
-            let max_x = geometry.vertices.iter().map(|v| v.x).fold(f32::NEG_INFINITY, f32::max);
-            let min_y = geometry.vertices.iter().map(|v| v.y).fold(f32::INFINITY, f32::min);
-            let max_y = geometry.vertices.iter().map(|v| v.y).fold(f32::NEG_INFINITY, f32::max);
-            
-            let center_x = (min_x + max_x) / 2.0;
-            let center_y = (min_y + max_y) / 2.0;
-            let width = max_x - min_x;
-            let height = max_y - min_y;
-            
-            // Convert world coordinates to Bevy coordinates (Y-axis flipped)
-            let bevy_center_y = -center_y;
-            
-            commands.spawn((
-                Mesh2d(meshes.add(Rectangle::new(width, height))),
-                MeshMaterial2d(gray_material.clone()),
-                Transform::from_translation(Vec3::new(center_x, bevy_center_y, 1.0)), // Above background but below player
-                LayerGeometry::from_coords(
-                    geometry.vertices.iter().map(|v| (v.x, v.y)).collect()
-                ),
-            ));
-        }
+        // Calculate center position from bottom-left corner + dimensions
+        let center_x = geometry.bottom_left.x + (geometry.width / 2.0);
+        let center_y = geometry.bottom_left.y + (geometry.height / 2.0);
+        
+        // Convert from our coordinate system (y=0 at bottom) to Bevy coordinates (y=0 at center)
+        let bevy_center_y = center_y - (SCREEN_HEIGHT / 2.0);
+        
+        commands.spawn((
+            Mesh2d(meshes.add(Rectangle::new(geometry.width, geometry.height))),
+            MeshMaterial2d(gray_material.clone()),
+            Transform::from_translation(Vec3::new(center_x, bevy_center_y, 1.0)), // Above background but below player
+            LayerGeometry::new_rectangle(
+                geometry.bottom_left.x,
+                geometry.bottom_left.y,
+                geometry.width,
+                geometry.height,
+            ),
+            Solid, // Mark as collidable
+        ));
     }
 }
