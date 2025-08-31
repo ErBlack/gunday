@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::components::WORLD_WIDTH;
+use crate::components::{SCREEN_HEIGHT, WORLD_WIDTH};
 use super::components::*;
 
 /// Move projectiles and handle cleanup
@@ -17,8 +17,8 @@ pub fn projectile_movement_system(
         // Remove projectiles that are off-screen or out of world bounds
         if transform.translation.x < -100.0 
             || transform.translation.x > WORLD_WIDTH + 100.0
-            || transform.translation.y < -300.0 
-            || transform.translation.y > 300.0 {
+            || transform.translation.y < -300.0
+            || transform.translation.y > SCREEN_HEIGHT + 300.0{
             commands.entity(entity).despawn();
         }
     }

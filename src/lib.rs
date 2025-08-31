@@ -38,11 +38,11 @@ pub fn main() {
             player_gravity_system,
             player_input_system,
             player_movement_system,
-            player_collision_system,
+            player_collision_system.after(player_movement_system),
             camera_follow_system,
             player_shooting_system,
             projectile_movement_system,
-            projectile_collision_system,
+            projectile_collision_system.after(projectile_movement_system),
         ))
         .run();
 }
