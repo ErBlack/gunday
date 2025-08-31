@@ -1,10 +1,6 @@
 use bevy::prelude::*;
-use crate::components::Projectile;
+use crate::projectile::spawn_projectile;
 use super::components::*;
-
-/// Projectile constants
-const PROJECTILE_SIZE: f32 = 11.2;
-const PROJECTILE_SPEED: f32 = 1680.0;
 
 /// Handle player shooting input
 pub fn player_shooting_system(
@@ -68,19 +64,8 @@ pub fn player_shooting_system(
                         player_transform.translation.z + 0.1, // Slightly in front
                     );
                     
-                    // Spawn projectile
-                    commands.spawn((
-                        Sprite {
-                            color: Color::srgb(1.0, 1.0, 0.0), // Yellow projectile
-                            custom_size: Some(Vec2::new(PROJECTILE_SIZE, PROJECTILE_SIZE)),
-                            ..default()
-                        },
-                        Transform::from_translation(spawn_pos),
-                        Projectile {
-                            direction,
-                            speed: PROJECTILE_SPEED,
-                        },
-                    ));
+                    // Spawn projectile using projectile module
+                    spawn_projectile(&mut commands, spawn_pos, direction);
                     
                     // Reset shot timer
                     shooting_state.last_shot_timer = 0.0;

@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 
-/// Component for the main camera
+
 #[derive(Component)]
 pub struct MainCamera;
 
-/// Component for camera animation state
+
 #[derive(Component)]
 pub struct CameraState {
     pub target_x: f32,
@@ -22,22 +22,14 @@ impl Default for CameraState {
             target_x: 0.0,
             current_x: 0.0,
             animation_timer: 0.0,
-            animation_duration: 1.0, // 1 second default
+            animation_duration: 1.0,
             start_x: 0.0,
             is_animating: false,
-            last_facing_right: true, // Start facing right
+            last_facing_right: true,
         }
     }
 }
 
-/// Component for projectiles
-#[derive(Component)]
-pub struct Projectile {
-    pub direction: Vec2,
-    pub speed: f32,
-}
-
-/// Component for layer geometry objects
 #[derive(Component)]
 pub struct LayerGeometry {
     pub bottom_left: Vec2,
@@ -45,7 +37,6 @@ pub struct LayerGeometry {
     pub height: f32,
 }
 
-/// Component to mark objects as solid/collidable
 #[derive(Component)]
 pub struct Solid;
 
@@ -59,7 +50,6 @@ impl LayerGeometry {
     }
 }
 
-/// Resource for storing all layer geometry data
 #[derive(Resource)]
 pub struct LayerGeometryStorage {
     pub objects: Vec<LayerGeometry>,
@@ -101,8 +91,6 @@ impl Default for LayerGeometryStorage {
     }
 }
 
-
-/// World and camera constants
 pub const SCREEN_WIDTH: f32 = 896.0;
 pub const SCREEN_HEIGHT: f32 = 672.0;
 pub const WORLD_WIDTH: f32 = 11648.0;

@@ -5,10 +5,11 @@ mod components;
 mod systems;
 mod player;
 mod collision;
+mod projectile;
 
-use systems::{setup_camera, setup_background, setup_layer_geometry, projectile_system};
+use systems::{setup_camera, setup_background, setup_layer_geometry};
 use player::{setup_player, player_input_system, player_movement_system, player_shooting_system, camera_follow_system, player_gravity_system, player_collision_system};
-use collision::{projectile_collision_system};
+use projectile::{projectile_movement_system, projectile_collision_system};
 use components::LayerGeometryStorage;
 
 #[wasm_bindgen]
@@ -40,7 +41,7 @@ pub fn main() {
             player_collision_system,
             camera_follow_system,
             player_shooting_system,
-            projectile_system,
+            projectile_movement_system,
             projectile_collision_system,
         ))
         .run();
