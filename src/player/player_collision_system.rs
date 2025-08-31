@@ -17,8 +17,9 @@ pub fn player_collision_system(
         let player_bottom = player_world_y - (PLAYER_HEIGHT / 2.0);
         
         // Check collision with screen bottom (prevent falling through)
-        if player_bottom <= 0.0 {
-            // Hit screen bottom
+        // Add small tolerance for ground detection
+        if player_bottom <= 2.0 {
+            // Hit screen bottom or very close to it
             let new_world_y = PLAYER_HEIGHT / 2.0;
             player_transform.translation.y = new_world_y - (SCREEN_HEIGHT / 2.0);
             
@@ -30,6 +31,24 @@ pub fn player_collision_system(
         
         // Check collision with layer geometry
         for geometry in geometry_query.iter() {
+            // Early culling: skip distant geometry to improve performance
+            let geometry_max_x = geometry.bottom_left.x + geometry.width;
+            let geometry_max_y = geometry.bottom_left.y + geometry.height;
+            let player_world_x = player_transform.translation.x;
+            
+            // Skip if geometry is too far away horizontally (with some margin)
+            let margin = 200.0;
+            if geometry_max_x < player_world_x - margin || 
+               geometry.bottom_left.x > player_world_x + margin {
+                continue;
+            }
+            
+            // Skip if geometry is too far away vertically (with some margin)
+            if geometry_max_y < player_world_y - margin || 
+               geometry.bottom_left.y > player_world_y + margin {
+                continue;
+            }
+            
             // Convert player position to world coordinates for collision detection
             let player_world_pos = Vec2::new(
                 player_transform.translation.x - (PLAYER_WIDTH / 2.0),
@@ -63,6 +82,7 @@ pub fn player_collision_system(
                         // Player is to the left, push left
                         player_transform.translation.x = geometry.bottom_left.x - (PLAYER_WIDTH / 2.0);
                     }
+                    // Only stop horizontal velocity, don't affect jumping
                     velocity.x = 0.0;
                 } else {
                     // Vertical collision
@@ -83,6 +103,8 @@ pub fn player_collision_system(
                         }
                     }
                 }
+                
+                // Don't break here - we need to check all geometry for proper grounded detection
             }
         }
         

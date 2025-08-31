@@ -57,23 +57,6 @@ impl LayerGeometry {
             height,
         }
     }
-    
-    pub fn from_coords(coords: Vec<(f32, f32)>) -> Self {
-        if coords.len() < 2 {
-            panic!("Need at least 2 coordinates to create a rectangle");
-        }
-        
-        let min_x = coords.iter().map(|(x, _)| *x).fold(f32::INFINITY, f32::min);
-        let max_x = coords.iter().map(|(x, _)| *x).fold(f32::NEG_INFINITY, f32::max);
-        let min_y = coords.iter().map(|(_, y)| *y).fold(f32::INFINITY, f32::min);
-        let max_y = coords.iter().map(|(_, y)| *y).fold(f32::NEG_INFINITY, f32::max);
-        
-        Self {
-            bottom_left: Vec2::new(min_x, min_y),
-            width: max_x - min_x,
-            height: max_y - min_y,
-        }
-    }
 }
 
 /// Resource for storing all layer geometry data
@@ -86,17 +69,40 @@ impl Default for LayerGeometryStorage {
     fn default() -> Self {
         Self {
             objects: vec![
-                // Rectangle with bottom-left at (0,0), width 1280, height 60
-                LayerGeometry::new_rectangle(0.0, 0.0, 1280.0, 60.0),
+                LayerGeometry::new_rectangle(0.0, 0.0, 4063.0, 182.0),
+                LayerGeometry::new_rectangle(4252.0, 0.0, 1056.0, 182.0),
+                LayerGeometry::new_rectangle(5308.0, 0.0, 1584.0, 87.0),
+                LayerGeometry::new_rectangle(7084.0, 0.0, 2953.0, 87.0),
+                LayerGeometry::new_rectangle(10037.0, 0.0, 1611.0, 182.0),
+                
+                LayerGeometry::new_rectangle(896.0, 288.0, 24.0, 384.0),
+
+                LayerGeometry::new_rectangle(1666.0, 182.0, 759.0, 97.0),
+                LayerGeometry::new_rectangle(1762.0, 279.0, 663.0, 97.0),
+                LayerGeometry::new_rectangle(1858.0, 376.0, 567.0, 97.0),
+                
+                LayerGeometry::new_rectangle(5074.0, 182.0, 234.0, 97.0),
+
+                LayerGeometry::new_rectangle(2578.0, 424.0, 663.0, 48.0),
+                LayerGeometry::new_rectangle(2914.0, 279.0, 380.0, 48.0),
+                LayerGeometry::new_rectangle(3445.0, 424.0, 570.0, 48.0),
+                LayerGeometry::new_rectangle(3394.0, 279.0, 380.0, 48.0),
+                LayerGeometry::new_rectangle(4162.0, 424.0, 570.0, 48.0),
+                LayerGeometry::new_rectangle(4450.0, 279.0, 285.0, 48.0),
+                
+                LayerGeometry::new_rectangle(6420.0, 231.0, 184.0, 48.0),
+                LayerGeometry::new_rectangle(6706.0, 327.0, 184.0, 48.0),
+                LayerGeometry::new_rectangle(7084.0, 327.0, 618.0, 48.0),
+
+                LayerGeometry::new_rectangle(7762.0, 87.0, 618.0, 97.0),
+                LayerGeometry::new_rectangle(7954.0, 184.0, 426.0, 97.0),
             ]
         }
     }
 }
 
-/// Size constants
-pub const GROUND_HEIGHT: f32 = 60.0;
 
 /// World and camera constants
-pub const SCREEN_WIDTH: f32 = 640.0;
-pub const SCREEN_HEIGHT: f32 = 480.0;
-pub const WORLD_WIDTH: f32 = 8320.0;
+pub const SCREEN_WIDTH: f32 = 896.0;
+pub const SCREEN_HEIGHT: f32 = 672.0;
+pub const WORLD_WIDTH: f32 = 11648.0;

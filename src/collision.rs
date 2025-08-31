@@ -22,10 +22,10 @@ pub fn projectile_collision_system(
         // Convert projectile position to world coordinates
         let projectile_world_y = projectile_transform.translation.y + (SCREEN_HEIGHT / 2.0);
         let projectile_world_pos = Vec2::new(
-            projectile_transform.translation.x - 4.0, // Assuming 8x8 projectile
-            projectile_world_y - 4.0
+            projectile_transform.translation.x - 5.6, // Assuming 11.2x11.2 projectile
+            projectile_world_y - 5.6
         );
-        let projectile_size = Vec2::new(8.0, 8.0);
+        let projectile_size = Vec2::new(11.2, 11.2);
         
         // Check collision with layer geometry
         for geometry in geometry_query.iter() {

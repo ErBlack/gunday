@@ -3,8 +3,8 @@ use crate::components::Projectile;
 use super::components::*;
 
 /// Projectile constants
-const PROJECTILE_SIZE: f32 = 8.0;
-const PROJECTILE_SPEED: f32 = 1200.0;
+const PROJECTILE_SIZE: f32 = 11.2;
+const PROJECTILE_SPEED: f32 = 1680.0;
 
 /// Handle player shooting input
 pub fn player_shooting_system(

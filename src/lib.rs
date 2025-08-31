@@ -22,7 +22,7 @@ pub fn main() {
     app.add_plugins(DefaultPlugins.set(WindowPlugin {
         primary_window: Some(Window {
             title: "Gunday - Contra-like Game".into(),
-            resolution: (640.0, 480.0).into(),
+            resolution: (896.0, 672.0).into(),
             resizable: false,
             canvas: Some("#bevy-canvas".to_string()),
             ..default()

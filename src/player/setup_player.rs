@@ -1,11 +1,12 @@
 use bevy::prelude::*;
-use crate::components::{GROUND_HEIGHT, SCREEN_WIDTH};
+use crate::components::{SCREEN_WIDTH, SCREEN_HEIGHT};
 use super::components::*;
 
 /// Setup the player character
 pub fn setup_player(mut commands: Commands) {
     // Calculate spawn position: first 1/4 of screen width from start of world
-    let spawn_x = SCREEN_WIDTH / 4.0;
+    let spawn_x: f32 = SCREEN_WIDTH / 4.0;
+    let spawn_y: f32 = 182.0;
     
     commands.spawn((
         Sprite {
@@ -13,7 +14,7 @@ pub fn setup_player(mut commands: Commands) {
             custom_size: Some(Vec2::new(PLAYER_WIDTH, PLAYER_HEIGHT)),
             ..default()
         },
-        Transform::from_translation(Vec3::new(spawn_x, -210.0 + (GROUND_HEIGHT / 2.0) + (PLAYER_HEIGHT / 2.0), 1.0)), // On ground surface
+        Transform::from_translation(Vec3::new(spawn_x, -(SCREEN_HEIGHT / 2.0) + (spawn_y / 2.0) + (PLAYER_HEIGHT / 2.0), 1.0)), // On ground surface
         Player,
         Velocity::default(),
         Gravity::default(),

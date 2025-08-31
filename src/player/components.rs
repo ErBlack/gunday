@@ -25,7 +25,7 @@ pub struct Gravity {
 
 impl Default for Gravity {
     fn default() -> Self {
-        Self { force: -1000.0 } // Negative because Y axis goes up in Bevy
+        Self { force: -1400.0 } // Negative because Y axis goes up in Bevy
     }
 }
 
@@ -47,6 +47,8 @@ pub struct JumpState {
     pub is_jumping: bool,
     pub jump_timer: f32,
     pub max_jump_duration: f32,
+    pub jump_buffer_timer: f32,
+    pub jump_buffer_time: f32,
 }
 
 impl Default for JumpState {
@@ -55,6 +57,8 @@ impl Default for JumpState {
             is_jumping: false, 
             jump_timer: 0.0,
             max_jump_duration: 0.5, // 500ms
+            jump_buffer_timer: 0.0,
+            jump_buffer_time: 0.1, // 100ms buffer for jump input
         }
     }
 }
@@ -92,5 +96,5 @@ impl Default for ShootingState {
 }
 
 /// Size constants
-pub const PLAYER_WIDTH: f32 = 28.0;
-pub const PLAYER_HEIGHT: f32 = 68.0;
+pub const PLAYER_WIDTH: f32 = 39.2;
+pub const PLAYER_HEIGHT: f32 = 95.2;

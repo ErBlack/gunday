@@ -2,13 +2,13 @@ use bevy::prelude::*;
 use super::components::*;
 
 /// Movement speed constants
-const PLAYER_SPEED: f32 = 200.0;
-const JUMP_FORCE: f32 = 200.0;
+const PLAYER_SPEED: f32 = 280.0;
+const JUMP_FORCE: f32 = 280.0;
 
 /// Physics constants
 const AIR_RESISTANCE: f32 = 0.98; // Inertia factor when flying (0.98 = 2% speed loss per frame)
-const AIR_ACCELERATION: f32 = 400.0; // How fast player accelerates in air
-const GROUND_ACCELERATION: f32 = 600.0; // How fast player accelerates on ground
+const AIR_ACCELERATION: f32 = 560.0; // How fast player accelerates in air
+const GROUND_ACCELERATION: f32 = 840.0; // How fast player accelerates on ground
 
 /// Handle player input
 pub fn player_input_system(
@@ -82,12 +82,24 @@ pub fn player_input_system(
             velocity.x = velocity.x.clamp(-PLAYER_SPEED * 1.2, PLAYER_SPEED * 1.2);
         }
 
-        // Variable height jumping system
-        if keyboard_input.just_pressed(KeyCode::Space) && grounded.is_grounded {
-            // Start jump
+        // Variable height jumping system with improved detection and buffer
+        
+        // Update jump buffer timer
+        if keyboard_input.just_pressed(KeyCode::Space) {
+            jump_state.jump_buffer_timer = jump_state.jump_buffer_time;
+        }
+        
+        if jump_state.jump_buffer_timer > 0.0 {
+            jump_state.jump_buffer_timer -= time.delta_secs();
+        }
+        
+        // Check for jump execution (either immediate or buffered)
+        if jump_state.jump_buffer_timer > 0.0 && grounded.is_grounded && !jump_state.is_jumping {
+            // Execute jump
             velocity.y = JUMP_FORCE;
             jump_state.is_jumping = true;
             jump_state.jump_timer = 0.0;
+            jump_state.jump_buffer_timer = 0.0; // Clear buffer
         }
         
         // Continue jump while button is held
