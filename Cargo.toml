@@ -12,24 +12,42 @@ bevy = { version = "0.16.1", default-features = false, features = [
     "bevy_render",
     "bevy_core_pipeline",
     "bevy_sprite",
-    "bevy_ui",
-    "bevy_text",
     "bevy_asset",
-    "bevy_scene",
-    "bevy_gltf",
     "bevy_audio",
-    "bevy_gilrs",
-    "x11",
+    "bevy_log",
     "png",
-    "hdr",
     "vorbis",
     "webgl2",
 ] }
+fastrand = { version = "2", features = ["js"] }
+getrandom = { version = "0.3", features = ["wasm_js"] }
 wasm-bindgen = "0.2"
-web-sys = "0.3"
+web-sys = { version = "0.3", features = [
+    "Window",
+    "EventTarget",
+    "Event",
+    "CustomEvent",
+    "CustomEventInit",
+] }
+js-sys = "0.3"
+console_error_panic_hook = "0.1"
 
 [profile.dev]
 opt-level = 1
 
 [profile.dev.package."*"]
 opt-level = 3
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+
+[profile.profiling]
+inherits = "release"
+debug = true
+lto = "off"
+codegen-units = 16
+incremental = true
+panic = "abort"

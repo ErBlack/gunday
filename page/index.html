@@ -8,6 +8,19 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=block" rel="stylesheet" />
         <link rel="stylesheet" href="style.css" />
+        <link rel="preload" href="pkg/gunday_bg.wasm" as="fetch" crossorigin="anonymous" />
+        <link rel="preload" href="assets/levels/level.png" as="image" />
+        <link rel="preload" href="assets/levels/background.png" as="image" />
+        <link rel="preload" href="assets/levels/foreground.png" as="image" />
+        <link rel="preload" href="assets/sprites/player_static.png" as="image" />
+
+        <script type="importmap">
+            {
+                "imports": {
+                    "env": "./pkg/env.js"
+                }
+            }
+        </script>
         <script type="module" src="er-countdown.js"></script>
         <link rel="icon" type="image/png" href="favicon.png" />
         <meta
@@ -25,8 +38,8 @@
                 <p>I invite you to my birthday!</p>
             </section>
 
-            <section>
-                <h2>Date</h2>
+            <section id="date">
+                <h2><span id="c1">D</span>ate</h2>
                 <p>Come on October 12 at any time from&nbsp;15:00 to&nbsp;20:00.</p>
                 <p>
                     Starts in: <er-countdown date="2025-10-12T13:00:00.000Z"></er-countdown>
@@ -60,7 +73,7 @@
                         </svg>
                         Wishlist
                     </a>
-                    <a href="https://store.steampowered.com/wishlist/id/ErBlack/">
+                    <a href="https://store.steampowered.com/wishlist/id/ErBlack/" id="steam">
                         <svg fill="currentColor" viewBox="0 0 33 32">
                             <path
                                 d="M31.32 4.57H29.8V3.05h-1.53V1.52h-1.52V0H3.89v6.1h1.53v1.52h1.52V6.1h18.29v1.52h1.52v15.24h-1.52v1.52H23.7v1.52H3.89v-1.52H2.37v1.52H.85V32h1.52v-4.57h19.81V32h10.67V6.1h-1.53zm-24.38 0H5.42V1.52h1.52zm3.05 0H8.46V1.52h1.53zm13.71 0H11.51V1.52H23.7zm7.62 10.67H29.8V7.62h-1.53V6.1h-1.52V4.57h-1.52V3.05h1.52v1.52h1.52V6.1h1.53v1.52h1.52z"
@@ -78,12 +91,12 @@
             </section>
 
             <section>
-                <h2>Location</h2>
+                <h2><span id="c2">L</span>ocation</h2>
                 <p>Serbia, Belgrade, Rajiceva&nbsp;3&nbsp;stan&nbsp;2a</p>
             </section>
 
             <section>
-                <h2>Schedule</h2>
+                <h2><span id="c3">S</span>chedule</h2>
                 <ul>
                     <li>
                         <span>15:00</span>
@@ -99,28 +112,129 @@
         </section>
 
         <div id="game">
-            <canvas id="bevy-canvas" width="640" height="480"></canvas>
+            <canvas id="bevy-canvas"></canvas>
         </div>
 
         <div id="background"></div>
 
         <script type="module">
-            import init, { run_app } from './gunday.js';
+            import { init } from './easter.js';
+            import { eggStatus } from './egg-status.js';
 
             const game = document.getElementById('game');
 
-            async function startGame() {
-                document.body.classList.add('game');
-                try {
-                    await init('./gunday_bg.wasm');
+            let loading = null;
+            let running = false;
+            let activeModule = null;
+            let pendingTeardown = null;
+            let resultListenerAttached = false;
 
-                    run_app();
-                } catch (error) {
-                    console.error('Failed to load game', error);
+            const onGameResult = event => {
+                console.log(event.detail);
+                const { win, code } = event.detail || {};
+
+                if (!localStorage.getItem('gundayCode')) localStorage.setItem('gundayCode', code);
+
+                localStorage.setItem('gundayStatus', win);
+
+                eggStatus(startGame);
+
+                if (win === false) {
+                    if (pendingTeardown !== null) {
+                        clearTimeout(pendingTeardown);
+                        pendingTeardown = null;
+                    }
+
+                    pendingTeardown = setTimeout(() => {
+                        pendingTeardown = null;
+                        teardownGame();
+                    }, 2000);
+                    return;
                 }
+
+                teardownGame();
+            };
+
+            init(startGame);
+            eggStatus(startGame);
+
+            function resetCanvas() {
+                const existing = document.getElementById('bevy-canvas');
+                if (!existing) {
+                    const canvas = document.createElement('canvas');
+                    canvas.id = 'bevy-canvas';
+                    game.appendChild(canvas);
+                    return;
+                }
+
+                const replacement = existing.cloneNode(false);
+                existing.replaceWith(replacement);
             }
 
-            location.search === '?debug' && startGame();
+            function teardownGame() {
+                if (pendingTeardown !== null) {
+                    clearTimeout(pendingTeardown);
+                    pendingTeardown = null;
+                }
+
+                if (activeModule && typeof activeModule.request_stop === 'function') {
+                    try {
+                        activeModule.request_stop();
+                    } catch (error) {
+                        console.warn('Failed to request WASM stop', error);
+                    }
+                }
+
+                loading = null;
+                running = false;
+                activeModule = null;
+                resetCanvas();
+                document.body.classList.remove('game');
+            }
+
+            async function startGame() {
+                if (loading || running) {
+                    return;
+                }
+
+
+                document.body.classList.add('game');
+                resetCanvas();
+
+                const cacheToken =
+                    typeof crypto !== 'undefined' && crypto.randomUUID
+                        ? crypto.randomUUID()
+                        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+                const pendingLoad = (async () => {
+                    const module = await import(`./pkg/gunday.js?cache=${cacheToken}`);
+                    await module.default();
+                    return module;
+                })();
+
+                loading = pendingLoad;
+
+                try {
+                    const wasmModule = await pendingLoad;
+                    if (loading !== pendingLoad) {
+                        return;
+                    }
+
+                    activeModule = wasmModule;
+                    running = true;
+                    wasmModule.run_app();
+                } catch (error) {
+                    console.error('Failed to load game', error);
+                    activeModule = null;
+                    running = false;
+                    document.body.classList.remove('game');
+                    resetCanvas();
+                } finally {
+                    if (loading === pendingLoad) {
+                        loading = null;
+                    }
+                }
+            }
 
             const background = document.getElementById('background');
 
@@ -135,6 +249,8 @@
 
                 background.style.backgroundPosition = `${easedX * 100}% bottom`;
             });
+
+            window.addEventListener('gunday-result', onGameResult);
         </script>
     </body>
 </html>

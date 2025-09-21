@@ -1,123 +1,164 @@
-use bevy::prelude::*;
 use super::components::*;
+use crate::player::PLAYER_CONFIG;
+use crate::systems::PlayerControl;
+use bevy::input::ButtonInput;
+use bevy::input::keyboard::KeyCode;
+use bevy::prelude::*;
 
-/// Movement speed constants
-const PLAYER_SPEED: f32 = 280.0;
-const JUMP_FORCE: f32 = 340.0;
-
-/// Physics constants
-const AIR_RESISTANCE: f32 = 0.98; // Inertia factor when flying (0.98 = 2% speed loss per frame)
-const AIR_ACCELERATION: f32 = 560.0; // How fast player accelerates in air
-const GROUND_ACCELERATION: f32 = 840.0; // How fast player accelerates on ground
-
-/// Handle player input
-pub fn player_input_system(
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+pub fn gather_player_actions(
     time: Res<Time>,
-    mut player_query: Query<(&mut Velocity, &Grounded, &mut JumpState, &mut PlayerDirection), With<Player>>,
+    control: Option<Res<PlayerControl>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut actions: ResMut<PlayerActions>,
 ) {
-    for (mut velocity, grounded, mut jump_state, mut direction) in player_query.iter_mut() {
+    if control.is_some_and(|ctrl| !ctrl.enabled) {
+        actions.reset();
+        return;
+    }
+
+    let dt = time.delta_secs();
+
+    let mut movement: f32 = 0.0;
+    if keyboard_input.pressed(KeyCode::ArrowLeft) {
+        movement -= 1.0;
+    }
+    if keyboard_input.pressed(KeyCode::ArrowRight) {
+        movement += 1.0;
+    }
+    actions.move_axis = movement.clamp(-1.0, 1.0);
+
+    let mut aim_axis = Vec2::ZERO;
+    if keyboard_input.pressed(KeyCode::ArrowLeft) {
+        aim_axis.x -= 1.0;
+    }
+    if keyboard_input.pressed(KeyCode::ArrowRight) {
+        aim_axis.x += 1.0;
+    }
+    if keyboard_input.pressed(KeyCode::ArrowUp) {
+        aim_axis.y += 1.0;
+    }
+    if keyboard_input.pressed(KeyCode::ArrowDown) {
+        aim_axis.y -= 1.0;
+    }
+    if aim_axis.length_squared() > 1.0 {
+        aim_axis = aim_axis.normalize();
+    }
+    actions.aim_axis = aim_axis;
+
+    let shoot_pressed = keyboard_input.pressed(KeyCode::ControlLeft)
+        || keyboard_input.pressed(KeyCode::ControlRight)
+        || keyboard_input.pressed(KeyCode::ShiftLeft)
+        || keyboard_input.pressed(KeyCode::ShiftRight);
+
+    actions
+        .jump
+        .update(keyboard_input.pressed(KeyCode::Space), dt);
+    actions.shoot.update(shoot_pressed, dt);
+    actions.dash.update(false, dt);
+    actions
+        .aim_up
+        .update(keyboard_input.pressed(KeyCode::ArrowUp), dt);
+    actions
+        .aim_down
+        .update(keyboard_input.pressed(KeyCode::ArrowDown), dt);
+}
+
+pub fn player_input_system(
+    actions: Res<PlayerActions>,
+    time: Res<Time>,
+    mut player_query: Query<
+        (
+            &mut Velocity,
+            &Grounded,
+            &mut JumpState,
+            &mut PlayerDirection,
+            Option<&PlayerProne>,
+            Option<&PlayerRespawning>,
+        ),
+        With<Player>,
+    >,
+) {
+    let dt = time.delta_secs();
+    for (mut velocity, grounded, mut jump_state, mut direction, prone, respawning) in
+        player_query.iter_mut()
+    {
+        if prone.is_some() || respawning.is_some() {
+            continue;
+        }
+
         if grounded.is_grounded {
-            // Ground movement - with active deceleration
-            let mut ground_input = 0.0;
-            if keyboard_input.pressed(KeyCode::ArrowLeft) {
-                ground_input = -1.0;
-            }
-            if keyboard_input.pressed(KeyCode::ArrowRight) {
-                ground_input = 1.0;
-            }
-            
-            // Update player direction based on input
+            let ground_input = actions.move_axis;
+
             if ground_input != 0.0 {
                 direction.last_movement_direction = ground_input;
                 direction.facing_right = ground_input > 0.0;
             }
-            
-            // If no input is pressed, apply deceleration force opposite to current movement
+
+            let mut effective_ground_input = ground_input;
             if ground_input == 0.0 && velocity.x.abs() > 0.1 {
-                // Apply deceleration force in opposite direction of movement
-                ground_input = if velocity.x > 0.0 { -1.0 } else { 1.0 };
+                effective_ground_input = if velocity.x > 0.0 { -1.0 } else { 1.0 };
             }
-            
-            // Apply ground acceleration/deceleration
-            velocity.x += ground_input * GROUND_ACCELERATION * time.delta_secs();
-            
-            // Stop completely if we've changed direction (prevents oscillation)
-            if grounded.is_grounded && keyboard_input.pressed(KeyCode::ArrowLeft) == false && keyboard_input.pressed(KeyCode::ArrowRight) == false {
-                // We're decelerating - check if we've crossed zero
-                if (velocity.x > 0.0 && ground_input < 0.0) || (velocity.x < 0.0 && ground_input > 0.0) {
-                    // We've crossed zero or very close to it, stop completely
-                    if velocity.x.abs() < GROUND_ACCELERATION * time.delta_secs() {
+
+            velocity.x += effective_ground_input * PLAYER_CONFIG.ground_acceleration * dt;
+
+            if grounded.is_grounded && actions.move_axis == 0.0 {
+                if (velocity.x > 0.0 && effective_ground_input < 0.0)
+                    || (velocity.x < 0.0 && effective_ground_input > 0.0)
+                {
+                    if velocity.x.abs() < PLAYER_CONFIG.ground_acceleration * dt {
                         velocity.x = 0.0;
                     }
                 }
             }
-            
-            // Clamp ground speed to max speed
-            velocity.x = velocity.x.clamp(-PLAYER_SPEED, PLAYER_SPEED);
+
+            velocity.x = velocity.x.clamp(
+                -PLAYER_CONFIG.max_ground_speed,
+                PLAYER_CONFIG.max_ground_speed,
+            );
         } else {
-            // Air movement - with inertia
-            // Apply air resistance (gradual slowdown)
-            velocity.x *= AIR_RESISTANCE;
-            
-            // Apply air acceleration when keys are pressed
-            let mut air_input = 0.0;
-            if keyboard_input.pressed(KeyCode::ArrowLeft) {
-                air_input = -1.0;
-            }
-            if keyboard_input.pressed(KeyCode::ArrowRight) {
-                air_input = 1.0;
-            }
-            
-            // Update player direction based on input (even in air)
+            velocity.x *= PLAYER_CONFIG.air_resistance;
+
+            let air_input = actions.move_axis;
+
             if air_input != 0.0 {
                 direction.last_movement_direction = air_input;
                 direction.facing_right = air_input > 0.0;
             }
-            
-            // Accelerate in air (but slower than ground movement)
-            velocity.x += air_input * AIR_ACCELERATION * time.delta_secs();
-            
-            // Clamp air speed to reasonable limits
-            velocity.x = velocity.x.clamp(-PLAYER_SPEED * 1.2, PLAYER_SPEED * 1.2);
+
+            velocity.x += air_input * PLAYER_CONFIG.air_acceleration * dt;
+
+            velocity.x = velocity.x.clamp(
+                -PLAYER_CONFIG.max_ground_speed * PLAYER_CONFIG.max_air_speed_multiplier,
+                PLAYER_CONFIG.max_ground_speed * PLAYER_CONFIG.max_air_speed_multiplier,
+            );
         }
 
-        // Variable height jumping system with improved detection and buffer
-        
-        // Update jump buffer timer
-        if keyboard_input.just_pressed(KeyCode::Space) {
+        if actions.jump.just_pressed {
             jump_state.jump_buffer_timer = jump_state.jump_buffer_time;
         }
-        
+
         if jump_state.jump_buffer_timer > 0.0 {
-            jump_state.jump_buffer_timer -= time.delta_secs();
+            jump_state.jump_buffer_timer -= dt;
         }
-        
-        // Check for jump execution (either immediate or buffered)
+
         if jump_state.jump_buffer_timer > 0.0 && grounded.is_grounded && !jump_state.is_jumping {
-            // Execute jump
-            velocity.y = JUMP_FORCE;
+            velocity.y = PLAYER_CONFIG.jump_force;
             jump_state.is_jumping = true;
             jump_state.jump_timer = 0.0;
-            jump_state.jump_buffer_timer = 0.0; // Clear buffer
+            jump_state.jump_buffer_timer = 0.0;
         }
-        
-        // Continue jump while button is held
-        if jump_state.is_jumping && keyboard_input.pressed(KeyCode::Space) {
-            jump_state.jump_timer += time.delta_secs();
+
+        if jump_state.is_jumping && actions.jump.pressed {
+            jump_state.jump_timer += dt;
             if jump_state.jump_timer < jump_state.max_jump_duration {
-                // Keep applying upward force - this overrides gravity
-                velocity.y = JUMP_FORCE;
+                velocity.y = PLAYER_CONFIG.jump_force;
             } else {
-                // Max time reached, let gravity take over
                 jump_state.is_jumping = false;
             }
         } else if jump_state.is_jumping {
-            // Button was released, let gravity take over
             jump_state.is_jumping = false;
         }
-        
-        // Reset jump state when landed
+
         if grounded.is_grounded && velocity.y <= 0.0 {
             jump_state.is_jumping = false;
             jump_state.jump_timer = 0.0;

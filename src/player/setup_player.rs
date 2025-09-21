@@ -1,26 +1,59 @@
-use bevy::prelude::*;
-use crate::components::{SCREEN_WIDTH, SCREEN_HEIGHT};
 use super::components::*;
+use crate::assets::GameAssets;
+use crate::constants::{GROUND_RECT_HEIGHT, SCREEN_HEIGHT, SCREEN_WIDTH, Z_PLAYER_BASE};
+use crate::player::PLAYER_CONFIG;
+use bevy::prelude::*;
 
-/// Setup the player character
-pub fn setup_player(mut commands: Commands) {
-    // Calculate spawn position: first 1/4 of screen width from start of world
-    let spawn_x: f32 = SCREEN_WIDTH / 4.0;
-    let spawn_y: f32 = 182.0;
-    
-    commands.spawn((
-        Sprite {
-            color: Color::srgb(1.0, 0.0, 0.0),
-            custom_size: Some(Vec2::new(PLAYER_WIDTH, PLAYER_HEIGHT)),
-            ..default()
-        },
-        Transform::from_translation(Vec3::new(spawn_x, -(SCREEN_HEIGHT / 2.0) + (spawn_y / 2.0) + (PLAYER_HEIGHT / 2.0), 1.0)), // On ground surface
-        Player,
-        Velocity::default(),
-        Gravity::default(),
-        Grounded::default(),
-        JumpState::default(),
-        PlayerDirection::default(), // Start facing right
-        ShootingState::default(), // Add shooting capability
+pub fn setup_player(mut commands: Commands, game_assets: Res<GameAssets>) {
+    let spawn_x = SCREEN_WIDTH * PLAYER_CONFIG.spawn_screen_fraction;
+    let spawn_world_y = GROUND_RECT_HEIGHT + PLAYER_CONFIG.ground_collider.y / 2.0;
+
+    let translation = Vec3::new(
+        spawn_x,
+        spawn_world_y - (SCREEN_HEIGHT / 2.0),
+        Z_PLAYER_BASE,
+    );
+
+    let sprite_size = SpriteSize {
+        width: PLAYER_CONFIG.ground_collider.x,
+        height: PLAYER_CONFIG.ground_collider.y,
+    };
+
+    let spawn_translation = translation;
+
+    let parent_id = commands
+        .spawn(PlayerBundle::new(
+            Transform::from_translation(spawn_translation),
+            sprite_size,
+        ))
+        .id();
+    let mut sprite_entity_opt: Option<Entity> = None;
+    commands.entity(parent_id).with_children(|parent| {
+        let child_id = parent
+            .spawn((
+                Sprite::from_image(game_assets.player_static.clone()),
+                Transform::from_translation(Vec3::new(0.0, 0.0, 0.1)),
+                PlayerSprite,
+                PlayerSpriteOffset::default(),
+                PlayerSpriteKind::Static,
+            ))
+            .id();
+        sprite_entity_opt = Some(child_id);
+    });
+    if let Some(sprite_entity) = sprite_entity_opt {
+        commands
+            .entity(parent_id)
+            .insert(PlayerSpriteEntity(sprite_entity));
+    }
+
+    commands.entity(parent_id).insert((
+        PlayerLives::new(PLAYER_CONFIG.starting_lives, PLAYER_CONFIG.max_lives),
+        PlayerSpawnPoint(spawn_translation),
     ));
+}
+
+#[derive(Component)]
+pub struct SpriteSize {
+    pub width: f32,
+    pub height: f32,
 }

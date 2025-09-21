@@ -1,0 +1,58 @@
+use bevy::prelude::Vec2;
+
+use crate::constants::DEFAULT_GRAVITY;
+
+#[derive(Debug, Clone, Copy)]
+pub struct PlayerConfig {
+    pub starting_lives: u8,
+    pub max_lives: u8,
+    pub spawn_screen_fraction: f32,
+    pub ground_collider: Vec2,
+    pub air_collider: Vec2,
+    pub max_ground_speed: f32,
+    pub ground_acceleration: f32,
+    pub air_acceleration: f32,
+    pub air_resistance: f32,
+    pub max_air_speed_multiplier: f32,
+    pub jump_force: f32,
+    pub max_jump_duration: f32,
+    pub jump_buffer_time: f32,
+    pub gravity_force: f32,
+    pub shot_cooldown: f32,
+    pub knockback_horizontal_speed: f32,
+    pub knockback_vertical_speed: f32,
+    pub knockdown_duration: f32,
+    pub game_over_prone_duration: f32,
+    pub respawn_invincibility: f32,
+    pub invincibility_flash_interval: f32,
+    pub permanent_invincibility: bool,
+    pub hearts_offset: Vec2,
+    pub heart_spacing: f32,
+}
+
+pub const PLAYER_CONFIG: PlayerConfig = PlayerConfig {
+    starting_lives: 5,
+    max_lives: 5,
+    spawn_screen_fraction: 0.25,
+    ground_collider: Vec2::new(50.0, 80.0),
+    air_collider: Vec2::new(50.0, 50.0),
+    max_ground_speed: 180.0,
+    ground_acceleration: 840.0,
+    air_acceleration: 560.0,
+    air_resistance: 0.98,
+    max_air_speed_multiplier: 1.2,
+    jump_force: 290.0,
+    max_jump_duration: 0.7,
+    jump_buffer_time: 0.1,
+    gravity_force: DEFAULT_GRAVITY,
+    shot_cooldown: 0.12,
+    knockback_horizontal_speed: 320.0,
+    knockback_vertical_speed: 440.0,
+    knockdown_duration: 0.5,
+    game_over_prone_duration: 2.5,
+    respawn_invincibility: 2.0,
+    invincibility_flash_interval: 0.05,
+    permanent_invincibility: false,
+    hearts_offset: Vec2::new(10.0, 10.0),
+    heart_spacing: 10.0,
+};

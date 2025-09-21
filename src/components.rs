@@ -1,31 +1,22 @@
+use crate::constants::{GROUND_RECT_HEIGHT, WORLD_WIDTH};
 use bevy::prelude::*;
-
 
 #[derive(Component)]
 pub struct MainCamera;
 
-
 #[derive(Component)]
 pub struct CameraState {
-    pub target_x: f32,
     pub current_x: f32,
-    pub animation_timer: f32,
-    pub animation_duration: f32,
-    pub start_x: f32,
-    pub is_animating: bool,
-    pub last_facing_right: bool,
+    pub max_reached_x: f32,
+    pub lock_position: Option<f32>,
 }
 
 impl Default for CameraState {
     fn default() -> Self {
-        Self { 
-            target_x: 0.0,
+        Self {
             current_x: 0.0,
-            animation_timer: 0.0,
-            animation_duration: 1.0,
-            start_x: 0.0,
-            is_animating: false,
-            last_facing_right: true,
+            max_reached_x: 0.0,
+            lock_position: None,
         }
     }
 }
@@ -59,13 +50,16 @@ impl Default for LayerGeometryStorage {
     fn default() -> Self {
         Self {
             objects: vec![
-                LayerGeometry::new_rectangle(0.0, 0.0, 11648.0, 124.0),
-            
-            ]
+                LayerGeometry::new_rectangle(0.0, 0.0, WORLD_WIDTH, GROUND_RECT_HEIGHT),
+                LayerGeometry::new_rectangle(892.0, 232.0, 26.0, 438.0),
+                LayerGeometry::new_rectangle(3408.0, 338.0, 158.0, 18.0),
+                LayerGeometry::new_rectangle(3924.0, 338.0, 158.0, 18.0),
+                LayerGeometry::new_rectangle(4389.0, 338.0, 158.0, 18.0),
+                LayerGeometry::new_rectangle(6873.0, 374.0, 18.0, 298.0),
+                LayerGeometry::new_rectangle(7895.0, 374.0, 18.0, 298.0),
+                LayerGeometry::new_rectangle(8008.0, 374.0, 18.0, 298.0),
+                LayerGeometry::new_rectangle(10242.0, 338.0, 117.0, 18.0),
+            ],
         }
     }
 }
-
-pub const SCREEN_WIDTH: f32 = 896.0;
-pub const SCREEN_HEIGHT: f32 = 672.0;
-pub const WORLD_WIDTH: f32 = 11648.0;

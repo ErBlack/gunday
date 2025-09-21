@@ -1,0 +1,23 @@
+pub mod boss_absorb_player_projectiles_system;
+pub mod boss_arm_animation_system;
+pub mod boss_explosion_system;
+pub mod boss_head_animation_system;
+pub mod boss_head_hit_system;
+pub mod boss_spine_hit_animation_system;
+pub mod boss_spine_hit_system;
+pub mod boss_sprite_flip_system;
+pub mod boss_stage1_movement_system;
+pub mod boss_stage1_shooting_system;
+pub mod boss_stage2_animation_system;
+pub mod boss_stage2_movement_system;
+pub mod boss_torso_animation_system;
+pub mod boss_transition_to_stage2_system;
+pub mod config;
+pub mod components;
+pub mod events;
+pub mod setup_boss;
+pub mod spawn_system;
+pub mod systems;
+pub mod util;
+
+pub use systems::BossPlugin;

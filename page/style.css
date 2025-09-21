@@ -21,15 +21,14 @@ body {
     background-size: 102% auto;
     background-repeat: no-repeat;
     background-position: bottom center;
+    transition: filter 1s ease-in-out;
     z-index: -1;
 }
 
 #game {
     display: none;
-    background-color: #2a2a2a;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 1s ease-in-out allow-discrete;
 }
 
 .game {
@@ -39,6 +38,15 @@ body {
 
     #game {
         display: block;
+        opacity: 1;
+
+        @starting-style {
+            opacity: 0;
+        }
+    }
+
+    #background {
+        filter: blur(4px) brightness(0.5);
     }
 }
 
@@ -61,11 +69,16 @@ body {
         text-shadow: none;
         background: url('title.png') center/cover no-repeat;
         aspect-ratio: 1611 / 296;
+        user-select: none;
     }
 
     h2 {
         font-size: clamp(2rem, 3vw, 3rem);
         margin: 0 0 clamp(0.25em, 1em, 0.6em) 0;
+        
+        [draggable] {
+            cursor: crosshair;
+        }
     }
 
     p,
@@ -121,10 +134,93 @@ body {
             transform: scale(1.05);
         }
     }
+
+    button {
+        font-family: inherit;
+        font-size: inherit;
+        background: transparent;
+        color: inherit;
+        border: solid 3px #fff;
+        padding: 0.5em 1em;
+        border-radius: 0.5em;
+        user-select: text;
+    }
+
+    #code {
+        border: none;
+    }
+
+    #code:empty {
+        display: none;
+    }
+
+    #code:not(:empty)::before {
+        content: 'code: ';
+    }
 }
 
 canvas {
     display: block;
-    border: 2px solid #444;
+    position: fixed;
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: 672px;
+    width: 896px;
+    margin: auto;
     border-radius: 5px;
+    image-rendering: optimizeSpeed;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -o-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    background: #010101;
+    border: solid 8px #333;
+    outline: solid 1px #010101;
+    transform: scale(calc((100vw - 32px) / 896px));
+}
+
+@media (min-aspect-ratio: 4/3) {
+    canvas {
+        transform: scale(calc((100vh - 32px) / 672px));
+    }
+}
+
+body:has(#bonus) {
+    pointer-events: none;
+}
+
+#bonus {
+    position: fixed;
+    display: block;
+    padding: 20px;
+    left: 100%;
+    width: 150px;
+    height: 100px;
+    background: url('./assets/ui/bonus.png') center no-repeat;
+    background-size: 78px 42px;
+    animation: bonus 5s linear;
+    left: calc(100% * var(--progress) - 150px);
+    transform: translateY(calc(sin(var(--progress) * 12) * 30px));
+    border: none;
+    pointer-events: all;
+}
+
+@property --progress {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 0;
+}
+
+@keyframes bonus {
+    from {
+        --progress: 1;
+    }
+    to {
+        --progress: 0;
+    }
 }

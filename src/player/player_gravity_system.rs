@@ -1,6 +1,5 @@
-use bevy::prelude::*;
 use super::components::*;
-
+use bevy::prelude::*;
 
 pub fn player_gravity_system(
     time: Res<Time>,
@@ -11,7 +10,7 @@ pub fn player_gravity_system(
             Some(js) => !js.is_jumping,
             None => true,
         };
-        
+
         if should_apply_gravity {
             velocity.y += gravity.force * time.delta_secs();
         }

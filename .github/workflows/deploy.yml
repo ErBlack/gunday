@@ -43,7 +43,7 @@ jobs:
           ${{ runner.os }}-cargo-
           
     - name: Build WASM package
-      run: wasm-pack build --target web --out-dir page --no-typescript
+      run: wasm-pack build --target web --out-dir page/pkg --release --no-typescript
       
     - name: Setup Pages
       uses: actions/configure-pages@v4
