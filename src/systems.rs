@@ -23,36 +23,6 @@ pub fn setup_camera(mut commands: Commands) {
     ));
 }
 
-/// Setup the world background with gradient
-pub fn setup_background(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
-    // Create a gradient background that spans the entire world width
-    let gradient_segments = 32; // Number of segments for smooth gradient
-    let segment_width = WORLD_WIDTH / gradient_segments as f32;
-    
-    for i in 0..gradient_segments {
-        let t = i as f32 / (gradient_segments - 1) as f32; // 0.0 to 1.0
-        
-        // Interpolate from green (0.0, 0.8, 0.0) to dark green (0.0, 0.3, 0.0)
-        let color = Color::srgb(
-            0.0,
-            0.8 * (1.0 - t) + 0.3 * t, // Green component interpolation
-            0.0
-        );
-        
-        let x_pos = (i as f32 + 0.5) * segment_width;
-        
-        commands.spawn((
-            Mesh2d(meshes.add(Rectangle::new(segment_width, SCREEN_HEIGHT * 2.0))),
-            MeshMaterial2d(materials.add(ColorMaterial::from_color(color))),
-            Transform::from_translation(Vec3::new(x_pos, 0.0, -10.0)), // Behind everything
-        ));
-    }
-}
-
 /// Setup layer geometry objects
 pub fn setup_layer_geometry(
     mut commands: Commands,

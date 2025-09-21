@@ -3,7 +3,7 @@ use super::components::*;
 
 /// Movement speed constants
 const PLAYER_SPEED: f32 = 280.0;
-const JUMP_FORCE: f32 = 280.0;
+const JUMP_FORCE: f32 = 340.0;
 
 /// Physics constants
 const AIR_RESISTANCE: f32 = 0.98; // Inertia factor when flying (0.98 = 2% speed loss per frame)

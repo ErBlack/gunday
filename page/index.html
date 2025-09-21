@@ -102,16 +102,17 @@
             <canvas id="bevy-canvas" width="640" height="480"></canvas>
         </div>
 
+        <div id="background"></div>
+
         <script type="module">
             import init, { run_app } from './gunday.js';
 
             const game = document.getElementById('game');
 
             async function startGame() {
+                document.body.classList.add('game');
                 try {
                     await init('./gunday_bg.wasm');
-
-                    game.classList.add('active');
 
                     run_app();
                 } catch (error) {
@@ -120,6 +121,8 @@
             }
 
             location.search === '?debug' && startGame();
+
+            const background = document.getElementById('background');
 
             document.addEventListener('mousemove', event => {
                 const x = event.clientX / window.innerWidth;
@@ -130,7 +133,7 @@
                     3 * unx * Math.pow(x, 2) * 0.3 +
                     Math.pow(x, 3) * 1;
 
-                document.body.style.backgroundPosition = `${easedX * 100}% bottom`;
+                background.style.backgroundPosition = `${easedX * 100}% bottom`;
             });
         </script>
     </body>

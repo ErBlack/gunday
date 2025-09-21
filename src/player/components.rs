@@ -56,7 +56,7 @@ impl Default for JumpState {
         Self { 
             is_jumping: false, 
             jump_timer: 0.0,
-            max_jump_duration: 0.5, // 500ms
+            max_jump_duration: 0.7, // 500ms
             jump_buffer_timer: 0.0,
             jump_buffer_time: 0.1, // 100ms buffer for jump input
         }

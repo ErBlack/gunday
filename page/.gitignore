@@ -1,7 +1,4 @@
-*
-!index.html
-!style.css
-!er-countdown.js
-!favicon.png
-!logo.png
-!bg.jpg
+gunday*
+package.json
+README.md
+.prettierrc.cjs
