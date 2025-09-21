@@ -98,30 +98,9 @@
             </section>
         </section>
 
-        <div id="game">
-            <canvas id="bevy-canvas" width="640" height="480"></canvas>
-        </div>
-
         <div id="background"></div>
 
         <script type="module">
-            import init, { run_app } from './gunday.js';
-
-            const game = document.getElementById('game');
-
-            async function startGame() {
-                document.body.classList.add('game');
-                try {
-                    await init('./gunday_bg.wasm');
-
-                    run_app();
-                } catch (error) {
-                    console.error('Failed to load game', error);
-                }
-            }
-
-            location.search === '?debug' && startGame();
-
             const background = document.getElementById('background');
 
             document.addEventListener('mousemove', event => {
