@@ -133,7 +133,9 @@
                 console.log(event.detail);
                 const { win, code } = event.detail || {};
 
+            if (code) {
                 if (!localStorage.getItem('gundayCode')) localStorage.setItem('gundayCode', code);
+            }
 
                 localStorage.setItem('gundayStatus', win);
 
