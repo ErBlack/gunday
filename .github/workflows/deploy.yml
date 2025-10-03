@@ -41,10 +41,9 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-cargo-
-          
+        
     - name: Build WASM package
-      run: wasm-pack build --target web --out-dir page/pkg --release --no-typescript
-      
+      run: wasm-pack build --release --target web --out-dir page/pkg --no-typescript
     - name: Setup Pages
       uses: actions/configure-pages@v4
       
