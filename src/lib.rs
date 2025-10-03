@@ -24,7 +24,6 @@ mod projectile;
 mod soundtrack;
 mod spawn;
 mod systems;
-mod web_console;
 
 static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
 
@@ -113,11 +112,6 @@ pub fn main() {
                 ..default()
             }),
     );
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        crate::web_console::init_panic_hook();
-    }
 
     app.insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
         .insert_resource(LayerGeometryStorage::default())

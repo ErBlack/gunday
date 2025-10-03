@@ -14,7 +14,6 @@ bevy = { version = "0.16.1", default-features = false, features = [
     "bevy_sprite",
     "bevy_asset",
     "bevy_audio",
-    "bevy_log",
     "png",
     "vorbis",
     "webgl2",
@@ -29,7 +28,6 @@ web-sys = { version = "0.3", features = [
     "CustomEventInit",
 ] }
 js-sys = "0.3"
-console_error_panic_hook = "0.1"
 
 [profile.dev]
 opt-level = 1

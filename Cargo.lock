@@ -633,7 +633,6 @@ dependencies = [
  "bevy_gizmos",
  "bevy_image",
  "bevy_input",
- "bevy_log",
  "bevy_math",
  "bevy_pbr",
  "bevy_platform",
@@ -1916,7 +1915,6 @@ name = "gunday"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "console_error_panic_hook",
  "fastrand",
  "js-sys",
  "wasm-bindgen",

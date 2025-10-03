@@ -8,7 +8,6 @@ use bevy::{
 
 const TRACK_COUNT: usize = 9;
 pub const TRACK_LOOP_DURATION_SECONDS: f32 = 7.059;
-pub(crate) const LOG_TARGET: &str = "soundtrack";
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct TrackTiming {
@@ -470,11 +469,6 @@ fn apply_track_set(
 ) {
     let desired_tracks = new_set.as_set();
     let current_set = controller.active_set.as_set();
-    debug!(
-        target: LOG_TARGET,
-        applying = ?desired_tracks,
-        current = ?current_set
-    );
 
     for (entity_index, entity) in controller.track_entities.iter().enumerate() {
         let track_index = entity_index + 1;
@@ -537,10 +531,6 @@ fn apply_track_set(
     }
 
     controller.active_set = new_set;
-    debug!(
-        target: LOG_TARGET,
-        active_after = ?controller.active_set.as_set()
-    );
 }
 
 fn handle_soundtrack_activation_effects(
