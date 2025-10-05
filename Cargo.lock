@@ -1917,6 +1917,7 @@ dependencies = [
  "bevy",
  "fastrand",
  "js-sys",
+ "png",
  "wasm-bindgen",
  "web-sys",
 ]

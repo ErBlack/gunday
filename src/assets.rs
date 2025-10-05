@@ -4,9 +4,9 @@ use bevy::prelude::*;
 
 #[derive(Resource)]
 pub struct GameAssets {
-    pub level: Handle<Image>,
+    pub level_chunks: Vec<Handle<Image>>,
     pub parallax_background: Handle<Image>,
-    pub foreground: Handle<Image>,
+    pub foreground_chunks: Vec<Handle<Image>>,
     pub player_static: Handle<Image>,
     pub player_shooting: Handle<Image>,
     pub player_run_a: Handle<Image>,
@@ -112,10 +112,24 @@ pub struct GameAssets {
 }
 
 pub fn load_game_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let level_chunk_count: usize = env!("LEVEL_CHUNK_COUNT")
+        .parse()
+        .expect("LEVEL_CHUNK_COUNT must be a positive integer");
+    let foreground_chunk_count: usize = env!("FOREGROUND_CHUNK_COUNT")
+        .parse()
+        .expect("FOREGROUND_CHUNK_COUNT must be a positive integer");
+
+    let level_chunks: Vec<Handle<Image>> = (1..=level_chunk_count)
+        .map(|index| asset_server.load(format!("levels/level_part{index}.png")))
+        .collect();
+    let foreground_chunks: Vec<Handle<Image>> = (1..=foreground_chunk_count)
+        .map(|index| asset_server.load(format!("levels/foreground_part{index}.png")))
+        .collect();
+
     let game_assets = GameAssets {
-        level: asset_server.load("levels/level.png"),
+        level_chunks,
         parallax_background: asset_server.load("levels/background.png"),
-        foreground: asset_server.load("levels/foreground.png"),
+        foreground_chunks,
         player_static: asset_server.load("sprites/player_static.png"),
         player_shooting: asset_server.load("sprites/player_shooting.png"),
         player_run_a: asset_server.load("sprites/player_run_a.png"),
@@ -231,12 +245,21 @@ pub struct ParallaxBackground;
 #[derive(Component)]
 pub struct ForegroundLayer;
 
+#[derive(Component)]
+pub struct LevelSegment(pub usize);
+
+#[derive(Component)]
+pub struct ForegroundSegment(pub usize);
+
 pub fn setup_level_background(mut commands: Commands, game_assets: Res<GameAssets>) {
-    commands.spawn((
-        Sprite::from_image(game_assets.level.clone()),
-        Transform::from_xyz(0.0, 0.0, Z_LEVEL),
-        LevelBackground,
-    ));
+    for (index, handle) in game_assets.level_chunks.iter().cloned().enumerate() {
+        commands.spawn((
+            Sprite::from_image(handle),
+            Transform::from_xyz(0.0, 0.0, Z_LEVEL),
+            LevelBackground,
+            LevelSegment(index),
+        ));
+    }
 
     commands.spawn((
         Sprite::from_image(game_assets.parallax_background.clone()),
@@ -244,34 +267,59 @@ pub fn setup_level_background(mut commands: Commands, game_assets: Res<GameAsset
         ParallaxBackground,
     ));
 
-    commands.spawn((
-        Sprite::from_image(game_assets.foreground.clone()),
-        Transform::from_xyz(0.0, 0.0, Z_FOREGROUND),
-        ForegroundLayer,
-    ));
+    for (index, handle) in game_assets.foreground_chunks.iter().cloned().enumerate() {
+        commands.spawn((
+            Sprite::from_image(handle),
+            Transform::from_xyz(0.0, 0.0, Z_FOREGROUND),
+            ForegroundLayer,
+            ForegroundSegment(index),
+        ));
+    }
 }
 
 pub fn position_level_background(
-    mut background_query: Query<&mut Transform, With<LevelBackground>>,
-    mut foreground_query: Query<&mut Transform, (With<ForegroundLayer>, Without<LevelBackground>)>,
+    mut queries: ParamSet<(
+        Query<(&mut Transform, &LevelSegment), With<LevelBackground>>,
+        Query<(&mut Transform, &ForegroundSegment), With<ForegroundLayer>>,
+    )>,
     game_assets: Res<GameAssets>,
     images: Res<Assets<Image>>,
 ) {
-    if let Some(image) = images.get(&game_assets.level) {
-        let image_width = image.width() as f32;
-        let background_x = image_width / 2.0;
-
-        for mut transform in background_query.iter_mut() {
-            transform.translation.x = background_x;
-            transform.translation.y = 0.0;
-            transform.translation.z = Z_LEVEL;
-        }
-
-        for mut transform in foreground_query.iter_mut() {
-            transform.translation.x = background_x;
-            transform.translation.y = 0.0;
+    if let Some(level_offsets) = compute_segment_offsets(&game_assets.level_chunks, &images) {
+        for (mut transform, segment) in queries.p0().iter_mut() {
+            if let Some(offset) = level_offsets.get(segment.0) {
+                transform.translation.x = *offset;
+                transform.translation.y = 0.0;
+                transform.translation.z = Z_LEVEL;
+            }
         }
     }
+
+    if let Some(foreground_offsets) = compute_segment_offsets(&game_assets.foreground_chunks, &images) {
+        for (mut transform, segment) in queries.p1().iter_mut() {
+            if let Some(offset) = foreground_offsets.get(segment.0) {
+                transform.translation.x = *offset;
+                transform.translation.y = 0.0;
+                transform.translation.z = Z_FOREGROUND;
+            }
+        }
+    }
+}
+
+fn compute_segment_offsets(
+    handles: &[Handle<Image>],
+    images: &Assets<Image>,
+) -> Option<Vec<f32>> {
+    let mut offsets = Vec::with_capacity(handles.len());
+    let mut accumulated = 0.0;
+    for handle in handles {
+        let image = images.get(handle)?;
+        let width = image.width() as f32;
+        let center = accumulated + width / 2.0;
+        offsets.push(center);
+        accumulated += width;
+    }
+    Some(offsets)
 }
 
 pub fn parallax_movement_system(
